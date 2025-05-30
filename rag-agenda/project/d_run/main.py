@@ -6,6 +6,7 @@ from utils.static.paths import AGENDA_FILE, VECTORSTORE_DIR
 from a_processing.preprocess import preprocess_agenda
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_community.vectorstores import Chroma
+from langchain_community.chat_models import ChatOllama
 
 
 def build_vectorstore(
@@ -40,6 +41,15 @@ def build_vectorstore(
     return db
 
 
+# //We need to pass the context bcs the LLM does not know our custom data, so we retrieve the relevant data and send that inf as context
+def generate_answer(question: str, context_docs: list) -> str:
+    llm = ChatOllama(model="llama3.2:3b")
+    context_text = "\n".join([doc.page_content for doc, _ in context_docs])
+    prompt = f"Context:\n{context_text}\n\nQuestion: {question}\nAnswer:"
+    response = llm.invoke(prompt)
+    return response.content
+
+
 def query_loop(db):
     print("\n🧠 Ask your agenda anything! Type 'exit' to quit.\n")
     while True:
@@ -62,10 +72,16 @@ def query_loop(db):
                 print(f"📄 {doc.page_content}")
                 print(f"🗂️ {doc.metadata}")
 
+            print("\n🧠 Generating answer from LLM...")
+            answer = generate_answer(q, results)
+            print("\n💬 LLM Answer:")
+            print(answer)
+
 
 if __name__ == "__main__":
     VECTORSTORE_DIR_PATH = Path(VECTORSTORE_DIR)
 
+    # // First build the vector store if it does not exist 
     if not VECTORSTORE_DIR_PATH.exists():
         print("📂 Vector store not found. Building new store...\n")
         db = build_vectorstore()
@@ -79,14 +95,3 @@ if __name__ == "__main__":
         print(f"✅ Loaded vector store in {time.time() - start:.2f}s\n")
 
     query_loop(db)
-
-
-# The code snippet you provided seems to be a part of a Python script that involves building a vector
-# store from an agenda file. The lines `tareas urgentes pendientes personales cosas que debo comprar
-# documentación fiscal llamar a alguien` are likely sample tasks or items from the agenda that are
-# being preprocessed and used to generate embeddings for the vector store.
-# tareas urgentes
-# pendientes personales
-# cosas que debo comprar
-# documentación fiscal
-# llamar a alguien

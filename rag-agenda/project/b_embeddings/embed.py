@@ -16,7 +16,9 @@ def embed_agenda(
     """
     start = time.time()
     print("🔧 Preprocessing raw agenda...")
+    # //We preprocess the data first line by line
     tasks = preprocess_agenda(data_path)
+    # // Then we collecting the cleaned text lines
     texts = [task["texto"] for task in tasks]
     metadatas = [
         {
@@ -27,8 +29,12 @@ def embed_agenda(
     ]
 
     print(f"🧠 Generating embeddings for {len(texts)} items...")
+
+    # //IMPORTANT
+    # // this generates the embeddings and this will be used to turn texts into vectors
     embedding = OllamaEmbeddings(model="mxbai-embed-large")
 
+    # //Now down below we start vectorizing + metadata and saved on the db to sik chroma
     print(f"💾 Persisting to vector store at {persist_path}...")
     db = Chroma.from_texts(
         texts=texts,

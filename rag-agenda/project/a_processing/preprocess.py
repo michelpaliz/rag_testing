@@ -5,8 +5,10 @@ from datetime import datetime
 from typing import List, Dict
 
 
+# // This takes a single line from agenda.txt and transforms it into a structured python dictionary, that can be used for vector embedding, and useful for storing metadata like tags and dates.
 def parse_line(line: str) -> Dict:
     # Tags
+
     tags = []
     low = line.lower()
     if "urgente" in low:
@@ -35,6 +37,16 @@ def parse_line(line: str) -> Dict:
     }
 
 
+# Example output
+#     {
+#   "texto": "llamar a la gestoría para resolver incidencia con el registro",
+#   "etiquetas": ["urgente", "llamar"],
+#   "fecha": 2025-05-27,
+#   "categoria": null (for more complex syntax can be implemented in the future we can use the same model to analyze first the data to determine categories as we did with the tags)
+# }
+
+
+#  // Here we are not vectorizing anything we just clean the data for the embedding
 def preprocess_agenda(path: str = str(AGENDA_FILE)) -> List[Dict]:
     """
     Reads the agenda file and returns a list of structured items.
